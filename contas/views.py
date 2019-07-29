@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .models import Pessoa
+from .models import Pessoa, Conta
 
 def mostrar_formulario_cadastro(request):
   contexto = {'msg': ''}
@@ -24,10 +24,29 @@ def login(request):
     email_formulario = request.POST.get('email')
     pessoa_banco_dados = Pessoa.objects.filter(email=email_formulario).first()
     if pessoa_banco_dados is not None:
-      return render(request, 'pessoa_filtrada.html', {'pessoa': pessoa_banco_dados})
+      return render(request, 'cadastro.html', {'pessoa': pessoa_banco_dados})
     return render(request, 'login.html', {'msg': 'Ops, não encontramos'})
   
   return render(request, 'login.html', {'msg': 'ola'})
+
+def cadastro(request):
+  if request.method == 'POST':
+    pessoa_bd = Pessoa.objects.filter(email=request.POST.get('pessoa')).first()
+    if pessoa_bd is not None:
+      conta = Conta()
+      conta.pessoa = pessoa_bd
+      conta.numero_conta = request.POST.get('numero_conta')
+      conta.saldo = request.POST.get('saldo')
+      conta.agencia = request.POST.get('agencia')
+      conta.save()
+      argumento = {
+        'pessoa': pessoa_bd,
+        'conta': Conta.objects.filter(pessoa=pessoa_bd).first()
+      }
+      return render(request, 'pessoa_filtrada.html', argumento)
+    else:
+      return render(request, 'index.html', {'msg': 'Faca login'})
+  return render(request, 'cadastro.html', {'msg': 'Faça login'})
 
 # - Página Login
 # - Render da página login com campo email 
